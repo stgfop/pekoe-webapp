@@ -1,77 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="PekoeModule">
+<html lang="en" ng-app="PekoeApp">
     <head>
         <title>Pekoe</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="angular.min.js"></script>
-        <script src="ng-websocket.js"></script>
     </head>
     <body ng-controller="PekoeController">
         <div id="ws_status">Disconnected</div>
         <div>There is currently {{ws.gameList.gameCount}} game running</div>
 
         <script>
-                    'use strict';
-
-                    angular.module('PekoeModule', ['ngWebsocket'])
-                            .run(function($websocket) {
-                                var ws = $websocket.$new({
-                                    url: 'ws://localhost:8080/pekoe/ws',
-                                    reconnect: true // it will reconnect after 2 seconds
-                                }); // instance of ngWebsocket, handled by $websocket service
-
-                                ws.$on('$open', function() {
-                                    console.log('Oh my gosh, websocket is really open! Fukken awesome!');
-
-                                    console.log('connecting')
-                                    ws.$emit('me.meeoo.server.event.PekoeListGameEvent', ["", 0]); // send a message to the websocket server
-
-                                    console.log('pong...')
-                                    // ws.$emit('pong', ['one', 'two', 'three']);
-                                });
-
-                                ws.$on('me.meeoo.server.event.PekoeListGameEvent', function(data) {
-                                    console.log(data);
-                                    var event = {};
-                                    event.name = data.shift();
-                                    event.transactionId = data.shift();
-                                    event.gameCount = data.shift();
-                                    event.games = [];
-                                    for (var i = 0; i < event.gameCount; i++) {
-                                        var game = {};
-                                        game.creation = data.shift();
-                                        game.visualHash = data.shift();
-                                        game.name = data.shift();
-                                        game.playerCount = data.shift();
-                                        game.isStarted = data.shift();
-                                        event.games.add(game);
-                                    }
-                                    console.log(event);
-                                });
-
-                                ws.$on('pong', function(data) {
-                                    console.log('The websocket server has sent the following data:');
-                                    console.log(data);
-
-                                    ws.$close();
-                                });
-
-                                ws.$on('$close', function() {
-                                    console.log('Noooooooooou, I want to have more fun with ngWebsocket, damn it!');
-                                });
-
-                                ws.$on('$error', function(error) {
-                                    console.log('An error occured');
-                                    console.log(error);
-                                });
-
-                                ws.$on('$message', function() {
-                                    console.log(message);
-                                });
-                            });
+                    
         </script>
 
+        <script src="js/lib/angular.min.js"></script>
+        <script src="js/lib/ng-websocket.js"></script>
+        <script src="js/controller/pekoe-websocket.js"></script>
+        <script src="js/controller/pekoe-controller.js"></script>
+        <script src="js/service/pekoe-service-wsevent.js"></script>
 
     </body>
 </html>
