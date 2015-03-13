@@ -6,18 +6,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body ng-controller="PekoeController">
-        <div id="ws_status">Disconnected</div>
-        <div>There is currently {{ws.gameList.gameCount}} game running</div>
+        <div>There is currently {{lobby.gamesCount}} | {{lobby.games }} game running</div>
 
-        <script>
-                    
-        </script>
 
         <script src="js/lib/angular.min.js"></script>
         <script src="js/lib/ng-websocket.js"></script>
         <script src="js/controller/pekoe-websocket.js"></script>
         <script src="js/controller/pekoe-controller.js"></script>
-        <script src="js/service/pekoe-service-wsevent.js"></script>
 
     </body>
 </html>
