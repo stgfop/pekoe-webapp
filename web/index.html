@@ -6,8 +6,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body ng-controller="PekoeController">
-        <div>There is currently {{lobby.gamesCount}} | {{lobby.games }} game running</div>
-
+        <section>
+            <h1>Lobby</h1>
+            <p>There is currently {{lobby.games.length}} games playing</p>
+            <table>
+                <tr ng-repeat="game in lobby.games">
+                    <td>{{game.visualHash}}</td>
+                    <td>{{game.name}}</td>
+                    <td>{{game.playerCount}}</td>
+                    <td ng-if="game.isStarted">started</td>
+                    <td ng-if="!game.isStarted" ng-click="joinGame(game)">Join</td>
+                    <td>{{game.creation}}</td>
+                </tr>
+            </table>
+            <div>
+                <input type="text" ng-model="lobby.playerName"/>
+                <input type="button" value="New Game" ng-click="lobby.newGameAction()"/>
+            </div>
+        </section>
 
         <script src="js/lib/angular.min.js"></script>
         <script src="js/lib/ng-websocket.js"></script>

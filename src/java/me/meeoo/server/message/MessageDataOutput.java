@@ -99,4 +99,8 @@ public class MessageDataOutput implements DataOutput {
     public List<Object> encode() {
         return data;
     }
+
+    public void writeJSON(String s) {
+        data.add(s);
+    }
 }

@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package me.meeoo.server.event;
 
 import java.io.DataInput;
@@ -16,44 +15,42 @@ import javax.json.JsonObjectBuilder;
 import me.meeoo.boardgameserver.GameHolder;
 import me.meeoo.boardgameserver.event.ListGamesEvent;
 import me.meeoo.pekoe.server.PekoeGame;
+import me.meeoo.pekoe.server.PekoePlayer;
+import me.meeoo.server.message.MessageDataOutput;
 
+public class PekoeNewGameEvent extends ListGamesEvent<PekoeGame> {
 
-public class PekoeListGameEvent extends ListGamesEvent<PekoeGame> {
+    private String game_name;
+    private String player_name;
 
     private GameHolder<PekoeGame> gameHolder;
+    private PekoeGame game;
+    private PekoePlayer player;
 
     public void setGameHolder(GameHolder<PekoeGame> gameHolder) {
         this.gameHolder = gameHolder;
     }
 
     @Override
-    public boolean execute(PekoeGame game) {
+    public boolean execute(PekoeGame g) {
+        game = new PekoeGame(game_name);
+        gameHolder.add(game);
+        player = new PekoePlayer(player_name);
+        game.addPlayer(player);
         return true;
     }
-    
-    
-    
+
     @Override
     protected void sendEvent(DataOutput out) throws IOException {
-        listGames(out, gameHolder);
-    }
-
-    public static void listGames(DataOutput out, GameHolder<PekoeGame> gameHolder) throws IOException {
-        GameHolder.TTL[] listAll = gameHolder.listAll();
-        out.writeLong(listAll.length);
-        for (GameHolder.TTL ttl : listAll) {
-            out.writeLong(ttl.getTimeOfCreation());
-            PekoeGame game = gameHolder.get(ttl.getKey());
-            out.writeUTF(game.getVisualHash());
-            out.writeUTF(game.getName());
-            out.writeInt(game.getPlayers().size());
-            out.writeBoolean(game.isStarted());
-        }
+        ((MessageDataOutput)out).writeJSON(player.toJSON(new StringBuilder()).toString());
+        ((MessageDataOutput)out).writeJSON(game.toJSON(new StringBuilder()).toString());
+        PekoeListGameEvent.listGames(out, gameHolder);
     }
 
     @Override
     protected void readEvent(DataInput in) throws IOException {
+        game_name = in.readUTF();
+        player_name = in.readUTF();
     }
-
 
 }

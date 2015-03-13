@@ -1,6 +1,6 @@
 'use strict';
 
-(function () {
+(function() {
     /**
      * @ngdoc provider
      * @name $websocketProvider
@@ -8,7 +8,7 @@
      * @description
      * HTML5 WebSocket provider for AngularJS
      */
-    function $websocketProvider () {
+    function $websocketProvider() {
         var wsp = this;
 
         wsp.$$config = {
@@ -20,16 +20,16 @@
             protocols: null
         };
 
-        wsp.$setup = function (cfg) {
+        wsp.$setup = function(cfg) {
             cfg = cfg || {};
             wsp.$$config = angular.extend({}, wsp.$$config, cfg);
 
             return wsp;
         };
 
-        wsp.$get = ['$http', function ($http) {
-            return new $websocketService(wsp.$$config, $http);
-        }];
+        wsp.$get = ['$http', function($http) {
+                return new $websocketService(wsp.$$config, $http);
+            }];
     }
 
     /**
@@ -39,17 +39,17 @@
      * @description
      * HTML5 Websocket service for AngularJS
      */
-    function $websocketService (cfg, $http) {
+    function $websocketService(cfg, $http) {
         var wss = this;
 
         wss.$$websocketList = {};
         wss.$$config = cfg || {};
 
-        wss.$get = function (url) {
+        wss.$get = function(url) {
             return wss.$$websocketList[url];
         };
 
-        wss.$new = function (cfg) {
+        wss.$new = function(cfg) {
             cfg = cfg || {};
 
             // Url or url + protocols initialization
@@ -58,8 +58,10 @@
 
                 // url + protocols
                 if (arguments.length > 1) {
-                    if (typeof arguments[1] === 'string' && arguments[1].length > 0) cfg.protocols = [arguments[1]];
-                    else if (typeof arguments[1] === 'object' && arguments[1].length > 0) cfg.protocols = arguments[1];
+                    if (typeof arguments[1] === 'string' && arguments[1].length > 0)
+                        cfg.protocols = [arguments[1]];
+                    else if (typeof arguments[1] === 'object' && arguments[1].length > 0)
+                        cfg.protocols = arguments[1];
                 }
             }
 
@@ -83,10 +85,11 @@
      * @description
      * HTML5 Websocket wrapper class for AngularJS
      */
-    function $websocket (cfg, $http) {
+    function $websocket(cfg, $http) {
         var me = this;
 
-        if (typeof cfg === 'undefined' || (typeof cfg === 'object' && typeof cfg.url === 'undefined')) throw new Error('An url must be specified for WebSocket');
+        if (typeof cfg === 'undefined' || (typeof cfg === 'object' && typeof cfg.url === 'undefined'))
+            throw new Error('An url must be specified for WebSocket');
 
         me.$$eventMap = {};
         me.$$ws = undefined;
@@ -103,22 +106,23 @@
             protocols: null
         };
 
-        me.$$fireEvent = function () {
+        me.$$fireEvent = function() {
             var args = [];
 
             Array.prototype.push.apply(args, arguments);
 
             var event = args.shift(),
-                handlers = me.$$eventMap[event];
+                    handlers = me.$$eventMap[event];
 
             if (typeof handlers !== 'undefined') {
                 for (var i = 0; i < handlers.length; i++) {
-                    if (typeof handlers[i] === 'function') handlers[i].apply(me, args);
+                    if (typeof handlers[i] === 'function')
+                        handlers[i].apply(me, args);
                 }
             }
         };
 
-        me.$$init = function (cfg) {
+        me.$$init = function(cfg) {
 
             if (cfg.mock) {
                 me.$$ws = new $$mockWebsocket(cfg.mock, $http);
@@ -130,22 +134,22 @@
                 me.$$ws = new WebSocket(cfg.url);
             }
 
-            me.$$ws.onmessage = function (message) {
+            me.$$ws.onmessage = function(message) {
                 try {
                     var decoded = JSON.parse(message.data);
                     me.$$fireEvent(decoded.event, decoded.data);
                     me.$$fireEvent('$message', decoded);
                 }
                 catch (err) {
-                    me.$$fireEvent('$message', message.data);
+                    me.$$fireEvent('$codedMessage', message.data);
                 }
             };
 
-            me.$$ws.onerror = function (error) {
+            me.$$ws.onerror = function(error) {
                 me.$$fireEvent('$error', error);
             };
 
-            me.$$ws.onopen = function () {
+            me.$$ws.onopen = function() {
                 // Clear the reconnect task if exists
                 if (me.$$reconnectTask) {
                     clearInterval(me.$$reconnectTask);
@@ -155,19 +159,22 @@
                 // Flush the message queue
                 if (me.$$config.enqueue && me.$$queue.length > 0) {
                     while (me.$$queue.length > 0) {
-                        if (me.$ready()) me.$$send(me.$$queue.shift());
-                        else break;
+                        if (me.$ready())
+                            me.$$send(me.$$queue.shift());
+                        else
+                            break;
                     }
                 }
 
                 me.$$fireEvent('$open');
             };
 
-            me.$$ws.onclose = function () {
+            me.$$ws.onclose = function() {
                 // Activate the reconnect task
                 if (me.$$config.reconnect) {
-                    me.$$reconnectTask = setInterval(function () {
-                        if (me.$status() === me.$CLOSED) me.$open();
+                    me.$$reconnectTask = setInterval(function() {
+                        if (me.$status() === me.$CLOSED)
+                            me.$open();
                     }, me.$$config.reconnectInterval);
                 }
 
@@ -190,13 +197,14 @@
          });
          };*/
 
-        me.$on = function () {
+        me.$on = function() {
             var handlers = [];
 
             Array.prototype.push.apply(handlers, arguments);
 
             var event = handlers.shift();
-            if (typeof event !== 'string' || handlers.length === 0) throw new Error('$on accept two parameters at least: a String and a Function or an array of Functions');
+            if (typeof event !== 'string' || handlers.length === 0)
+                throw new Error('$on accept two parameters at least: a String and a Function or an array of Functions');
 
             me.$$eventMap[event] = me.$$eventMap[event] || [];
             for (var i = 0; i < handlers.length; i++) {
@@ -206,21 +214,26 @@
             return me;
         };
 
-        me.$un = function (event) {
-            if (typeof event !== 'string') throw new Error('$un needs a String representing an event.');
+        me.$un = function(event) {
+            if (typeof event !== 'string')
+                throw new Error('$un needs a String representing an event.');
 
-            if (typeof me.$$eventMap[event] !== 'undefined') delete me.$$eventMap[event];
+            if (typeof me.$$eventMap[event] !== 'undefined')
+                delete me.$$eventMap[event];
 
             return me;
         };
 
-        me.$$send = function (message) {
-            if (me.$ready()) me.$$ws.send(JSON.stringify(message));
-            else if (me.$$config.enqueue) me.$$queue.push(message);
+        me.$$send = function(message) {
+            if (me.$ready())
+                me.$$ws.send(JSON.stringify(message));
+            else if (me.$$config.enqueue)
+                me.$$queue.push(message);
         };
 
-        me.$emit = function (event, data) {
-            if (typeof event !== 'string') throw new Error('$emit needs two parameter: a String and a Object or a String');
+        me.$emit = function(event, data) {
+            if (typeof event !== 'string')
+                throw new Error('$emit needs two parameter: a String and a Object or a String');
 
             var message = {
                 event: event,
@@ -232,15 +245,17 @@
             return me;
         };
 
-        me.$open = function () {
+        me.$open = function() {
             me.$$config.reconnect = me.$$reconnectCopy;
 
-            if (me.$status() !== me.$OPEN) me.$$init(me.$$config);
+            if (me.$status() !== me.$OPEN)
+                me.$$init(me.$$config);
             return me;
         };
 
-        me.$close = function () {
-            if (me.$status() !== me.$CLOSED) me.$$ws.close();
+        me.$close = function() {
+            if (me.$status() !== me.$CLOSED)
+                me.$$ws.close();
 
             if (me.$$reconnectTask) {
                 clearInterval(me.$$reconnectTask);
@@ -252,16 +267,18 @@
             return me;
         };
 
-        me.$status = function () {
-            if (typeof me.$$ws === 'undefined') return me.$CLOSED;
-            else return me.$$ws.readyState;
+        me.$status = function() {
+            if (typeof me.$$ws === 'undefined')
+                return me.$CLOSED;
+            else
+                return me.$$ws.readyState;
         };
 
-        me.$ready = function () {
+        me.$ready = function() {
             return me.$status() === me.$OPEN;
         };
 
-        me.$mockup = function () {
+        me.$mockup = function() {
             return me.$$config.mock;
         };
 
@@ -269,20 +286,21 @@
         me.$$config = angular.extend({}, me.$$config, cfg);
         me.$$reconnectCopy = me.$$config.reconnect;
 
-        if (!me.$$config.lazy) me.$$init(me.$$config);
+        if (!me.$$config.lazy)
+            me.$$init(me.$$config);
 
         return me;
     }
 
-    function $$mockWebsocket (cfg, $http) {
+    function $$mockWebsocket(cfg, $http) {
         cfg = cfg || {};
 
         var me = this,
-            openTimeout = cfg.openTimeout || 500,
-            closeTimeout = cfg.closeTimeout || 1000,
-            messageInterval = cfg.messageInterval || 2000,
-            fixtures = cfg.fixtures || {},
-            messageQueue = [];
+                openTimeout = cfg.openTimeout || 500,
+                closeTimeout = cfg.closeTimeout || 1000,
+                messageInterval = cfg.messageInterval || 2000,
+                fixtures = cfg.fixtures || {},
+                messageQueue = [];
 
         me.CONNECTING = 0;
         me.OPEN = 1;
@@ -291,19 +309,20 @@
 
         me.readyState = me.CONNECTING;
 
-        me.send = function (message) {
+        me.send = function(message) {
             if (me.readyState === me.OPEN) {
                 messageQueue.push(message);
                 return me;
             }
-            else throw new Error('WebSocket is already in CLOSING or CLOSED state.');
+            else
+                throw new Error('WebSocket is already in CLOSING or CLOSED state.');
         };
 
-        me.close = function () {
+        me.close = function() {
             if (me.readyState === me.OPEN) {
                 me.readyState = me.CLOSING;
 
-                setTimeout(function () {
+                setTimeout(function() {
                     me.readyState = me.CLOSED;
 
                     me.onclose();
@@ -313,15 +332,19 @@
             return me;
         };
 
-        me.onmessage = function () {};
-        me.onerror = function () {};
-        me.onopen = function () {};
-        me.onclose = function () {};
+        me.onmessage = function() {
+        };
+        me.onerror = function() {
+        };
+        me.onopen = function() {
+        };
+        me.onclose = function() {
+        };
 
-        setInterval(function () {
+        setInterval(function() {
             if (messageQueue.length > 0) {
                 var message = messageQueue.shift(),
-                    msgObj = JSON.parse(message);
+                        msgObj = JSON.parse(message);
 
                 switch (msgObj.event) {
                     case '$close':
@@ -343,13 +366,13 @@
             }
         }, messageInterval);
 
-        var start = function (fixs) {
+        var start = function(fixs) {
             fixs = fixs || {};
             fixs = fixs instanceof Error ? {} : fixs;
 
             fixtures = fixs;
 
-            setTimeout(function () {
+            setTimeout(function() {
                 me.readyState = me.OPEN;
                 me.onopen();
             }, openTimeout);
@@ -358,10 +381,11 @@
         // Get fixtures from a server or a file if it's a string
         if (typeof fixtures === 'string') {
             $http.get(fixtures)
-                .success(start)
-                .error(start);
+                    .success(start)
+                    .error(start);
         }
-        else start(fixtures);
+        else
+            start(fixtures);
 
         return me;
     }
@@ -374,6 +398,6 @@
      * HTML5 WebSocket module for AngularJS
      */
     angular
-        .module('ngWebsocket', [])
-        .provider('$websocket', $websocketProvider);
+            .module('ngWebsocket', [])
+            .provider('$websocket', $websocketProvider);
 })();

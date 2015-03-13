@@ -5,7 +5,8 @@ angular.module('PekoeApp').controller('PekoeController', ['$scope', '$rootScope'
         var eventHandlers = new Map();
         $scope.lobby = {
             games: [],
-            gamesCount: "loading..."
+            playerName: "UnnamedPlayer",
+            newGameAction: lobbyNewGameAction
         }
         $rootScope.eventChannel = {
             listeners: [],
@@ -17,7 +18,6 @@ angular.module('PekoeApp').controller('PekoeController', ['$scope', '$rootScope'
                     var l = this.listeners[i];
                     l(e);
                 }
-
             }
         };
 
@@ -30,10 +30,13 @@ angular.module('PekoeApp').controller('PekoeController', ['$scope', '$rootScope'
             $scope.ws = PekoeWebsocketService.ws();
 
             eventHandlers.set("me.meeoo.server.event.PekoeListGameEvent", eventHandler_listGames);
-            eventHandlers.set("me.meeoo.server.event.PekoeNewGameEvent", null);
+            eventHandlers.set("me.meeoo.server.event.PekoeNewGameEvent", eventHandler_newGame);
             eventHandlers.set("me.meeoo.server.event.PekoeNewPlayerEvent", null);
             eventHandlers.set("me.meeoo.server.event.PekoeStartGameEvent", null);
+        }
 
+        $scope.joinGame = function(game) {
+            console.log("joining game", game);
         }
 
         function eventDispatcher(event) {
@@ -41,16 +44,40 @@ angular.module('PekoeApp').controller('PekoeController', ['$scope', '$rootScope'
             if (eventHandler == null) {
                 console.log("Could not dispatch unkown event", event.name, event);
             } else {
-                console.log("dispatching event to", event.name, event);
+                console.log("WEBSOCKET->event", event);
                 eventHandler(event);
             }
             $scope.$apply();
         }
 
         function eventHandler_listGames(event) {
-            console.log("Got the list");
             $scope.lobby.games = event.games;
-            $scope.lobby.gamesCount = event.gamesCount;
+
+            $scope.lobby.games.push({
+                creation: 1234716846854231,
+                visualHash: "af51e2",
+                name: "ola quetal",
+                playerCount: 2,
+                isStarted: true
+            })
+
+            $scope.lobby.games.push({
+                creation: 123185168454152,
+                visualHash: "fa4587",
+                name: "The roxorz",
+                playerCount: 1,
+                isStarted: false
+            })
+            console.log("Got the list",  $scope.lobby.games);
+        }
+
+        function eventHandler_newGame(event) {
+            console.log("new game...", event);
+        }
+
+        function lobbyNewGameAction() {
+            console.log($scope.ws)
+            PekoeWebsocketService.newGame("game_name", $scope.lobby.playerName);
         }
 
     }]);

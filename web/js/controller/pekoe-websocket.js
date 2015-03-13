@@ -11,13 +11,17 @@ angular.module('PekoeApp', ['ngWebsocket']).service('EventCommunicationChannel',
         ecc.event = e;
     }
 }).service('PekoeWebsocketService', ['$rootScope', '$websocket', function($rootScope, $websocket) {
-
-        return {
+        var me = {
             ws: getWS,
+            listGames: listGamesAction,
+            newGame: newGameAction
         };
+        var ws;
+
+        return me;
 
         function getWS() {
-            var ws = $websocket.$new({
+            ws = $websocket.$new({
                 url: 'ws://localhost:8080/pekoe/ws',
                 reconnect: true // it will reconnect after 2 seconds
             }); // instance of ngWebsocket, handled by $websocket service
@@ -26,7 +30,7 @@ angular.module('PekoeApp', ['ngWebsocket']).service('EventCommunicationChannel',
             ws.$on('$open', function() {
                 console.log("WEBSOCKET: $open");
                 ws.status = "connected";
-                ws.$emit('me.meeoo.server.event.PekoeListGameEvent', ["", 0]); // send a message to the websocket server
+                listGamesAction();
             });
 
             ws.$on('me.meeoo.server.event.PekoeListGameEvent', function(data) {
@@ -48,6 +52,17 @@ angular.module('PekoeApp', ['ngWebsocket']).service('EventCommunicationChannel',
                 $rootScope.eventChannel.recieve(event);
             });
 
+            ws.$on('me.meeoo.server.event.PekoeNewGameEvent', function(data) {
+                console.log("WEBSOCKET<-event ", data);
+                var event = {};
+                event.name = data.shift();
+                event.transactionId = data.shift();
+                event.player = JSON.parse(data.shift());
+                event.game = JSON.parse(data.shift());
+
+                $rootScope.eventChannel.recieve(event);
+            });
+
             ws.$on('$close', function() {
                 ws.status = "disconnected";
                 console.log('WEBSOCKET: $close recieved');
@@ -58,7 +73,20 @@ angular.module('PekoeApp', ['ngWebsocket']).service('EventCommunicationChannel',
                 console.log(error);
             });
 
+            ws.$on('$codedMessage', function(msg) {
+                console.log('Could not decode message', msg);
+            });
+
 
             return ws;
         }
+
+        function listGamesAction() {
+            ws.$emit('me.meeoo.server.event.PekoeListGameEvent', ["", 0]); // send a message to the websocket server
+        }
+        function newGameAction(game_name, player_name) {
+            console.log("Ola");
+            ws.$emit('me.meeoo.server.event.PekoeNewGameEvent', ["", 0, game_name, player_name]); // send a message to the websocket server
+        }
+
     }]);

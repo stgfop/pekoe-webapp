@@ -25,6 +25,8 @@ import me.meeoo.pekoe.server.PekoeGame;
 import me.meeoo.pekoe.server.PekoePlayer;
 import me.meeoo.pekoe.server.rule.PekoeOtomaton;
 import me.meeoo.server.event.PekoeListGameEvent;
+import me.meeoo.server.event.PekoeNewGameEvent;
+import me.meeoo.server.event.PekoeNewPlayerEvent;
 import me.meeoo.server.message.Message;
 import me.meeoo.server.message.MessageDecoder;
 import me.meeoo.server.message.MessageEncoder;
@@ -47,15 +49,10 @@ public class PekoeEndPoint extends BoardGameServer<PekoeGame, PekoeOtomaton, Pek
             try {
                 event = recieve(message.getIn());
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-                System.err.println("Can't instantiate event "+message.getEventName()+", "+ex);
+                System.err.println("Can't instantiate event " + message.getEventName() + ", " + ex);
                 //message.getOut().writeUTF("Unknown Event");
             }
             System.err.println("event : " + event);
-            if (event instanceof ServerEvent) {
-                if (event instanceof PekoeListGameEvent) {
-                    ((PekoeListGameEvent) event).setGameHolder(games);
-                }
-            }
             if (event != null) {
                 send(message.getOut(), event);
             }
@@ -83,6 +80,21 @@ public class PekoeEndPoint extends BoardGameServer<PekoeGame, PekoeOtomaton, Pek
     public void onClose(Session peer) {
         System.err.printf("peer disconnected %s\n", peer.toString());
         peers.remove(peer);
+    }
+
+    @Override
+    protected boolean recieveServerEvent(ServerEvent event) {
+        if (event instanceof PekoeListGameEvent) {
+            ((PekoeListGameEvent) event).setGameHolder(games);
+            return true;
+        } else if (event instanceof PekoeNewPlayerEvent) {
+            ((PekoeNewPlayerEvent) event).setGameHolder(games);
+            return event.execute(null);
+        } else if (event instanceof PekoeNewGameEvent) {
+            ((PekoeNewGameEvent) event).setGameHolder(games);
+            return event.execute(null);
+        }
+        return false;
     }
 
 }
